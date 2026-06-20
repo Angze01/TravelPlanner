@@ -7,6 +7,41 @@
 #include <sstream>
 #include <iostream>
 #include <direct.h>   // _mkdir (Windows)
+#include <windows.h>
+
+// ============================================================
+//  字串轉換工具 (UTF-8 <-> ANSI) 以支援 Windows MinGW fstream
+// ============================================================
+static std::string utf8_to_ansi(const std::string& str) {
+    if (str.empty()) return "";
+    // UTF-8 to UTF-16
+    int wlen = MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0);
+    std::wstring wstr(wlen, 0);
+    MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), &wstr[0], wlen);
+
+    // UTF-16 to ANSI (CP_ACP)
+    int alen = WideCharToMultiByte(CP_ACP, 0, &wstr[0], (int)wstr.size(), NULL, 0, NULL, NULL);
+    std::string ansiStr(alen, 0);
+    WideCharToMultiByte(CP_ACP, 0, &wstr[0], (int)wstr.size(), &ansiStr[0], alen, NULL, NULL);
+
+    return ansiStr;
+}
+
+static std::wstring utf8_to_wstring(const std::string& str) {
+    if (str.empty()) return std::wstring();
+    int size_needed = MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), NULL, 0);
+    std::wstring wstrTo(size_needed, 0);
+    MultiByteToWideChar(CP_UTF8, 0, &str[0], (int)str.size(), &wstrTo[0], size_needed);
+    return wstrTo;
+}
+
+static std::string wstring_to_utf8(const std::wstring& wstr) {
+    if (wstr.empty()) return std::string();
+    int size_needed = WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), NULL, 0, NULL, NULL);
+    std::string strTo(size_needed, 0);
+    WideCharToMultiByte(CP_UTF8, 0, &wstr[0], (int)wstr.size(), &strTo[0], size_needed, NULL, NULL);
+    return strTo;
+}
 
 // ============================================================
 //  split — 以分隔符切割字串
@@ -34,7 +69,7 @@ bool FileManager::ensureSaveDir(const std::string& dir) {
 // ============================================================
 bool FileManager::save(const Trip& trip, const std::string& filename) {
     ensureSaveDir("saves");
-    std::ofstream file(filename, std::ios::out | std::ios::trunc);
+    std::ofstream file(utf8_to_ansi(filename), std::ios::out | std::ios::trunc);
     if (!file.is_open()) return false;
 
     // 找出第一天的日期（作為 startDate）
@@ -111,7 +146,7 @@ Activity* FileManager::deserializeActivity(const std::string& line) {
 //  load — 從 .travel 檔還原旅程
 // ============================================================
 Trip* FileManager::load(const std::string& filename) {
-    std::ifstream file(filename);
+    std::ifstream file(utf8_to_ansi(filename));
     if (!file.is_open()) return nullptr;
 
     Trip* trip = nullptr;
@@ -160,16 +195,16 @@ Trip* FileManager::load(const std::string& filename) {
 // ============================================================
 //  listSaveFiles — 列出存檔目錄中所有 .travel 檔案
 // ============================================================
-#include <windows.h>
 std::vector<std::string> FileManager::listSaveFiles(const std::string& dir) {
     std::vector<std::string> files;
     std::string pattern = dir + "\\*.travel";
-    WIN32_FIND_DATAA findData;
-    HANDLE hFind = FindFirstFileA(pattern.c_str(), &findData);
+    WIN32_FIND_DATAW findData;
+    HANDLE hFind = FindFirstFileW(utf8_to_wstring(pattern).c_str(), &findData);
     if (hFind == INVALID_HANDLE_VALUE) return files;
     do {
-        files.push_back(dir + "\\" + findData.cFileName);
-    } while (FindNextFileA(hFind, &findData));
+        std::string fname = wstring_to_utf8(findData.cFileName);
+        files.push_back(dir + "\\" + fname);
+    } while (FindNextFileW(hFind, &findData));
     FindClose(hFind);
     return files;
 }
