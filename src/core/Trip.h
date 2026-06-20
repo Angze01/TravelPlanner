@@ -14,13 +14,15 @@ private:
     std::string       tripName;    // 行程名稱（e.g. 日本關東之旅）
     std::string       destination; // 目的地（e.g. 日本東京）
     int               totalDays;  // 共幾天
+    double            budget;     // 尿遊預算（0 = 未設定）
     std::vector<Day>  days;       // 每天的行程
 
 public:
     // ── 建構子 ──────────────────────────────────────────────
     Trip(const std::string& tripName,
          const std::string& destination,
-         int totalDays);
+         int totalDays,
+         double budget = 0.0);
 
     // ── 天數管理 ────────────────────────────────────────────
     void initDays(const std::string& startDate = "");  // 初始化 totalDays 個 Day
@@ -38,16 +40,23 @@ public:
     int getTotalUncompletedCount()const;
     // 回傳各活動類型完成數量統計 map<類型, 完成數>
     std::map<std::string, int> getCompletionStatsByType() const;
+    // v2.0 費用統計
+    double getTotalCost()         const;  // 整趟已花費
+    double getRemainingBudget()   const;  // 剩餘預算
+    // 各類別花費 map<類型, 金額>
+    std::map<std::string, double> getCostStatsByType() const;
 
     // ── Getter / Setter ─────────────────────────────────────
     std::string getTripName()    const { return tripName; }
     std::string getDestination() const { return destination; }
     int         getTotalDays()   const { return totalDays; }
+    double      getBudget()      const { return budget; }
     std::vector<Day>& getDays()        { return days; }
     const std::vector<Day>& getDays()  const { return days; }
 
     void setTripName   (const std::string& n) { tripName    = n; }
     void setDestination(const std::string& d) { destination = d; }
+    void setBudget     (double b)             { budget      = b; }
 
     // ── 展示 ────────────────────────────────────────────────
     void displaySummary()  const;   // 總覽（含統計）

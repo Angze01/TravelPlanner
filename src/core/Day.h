@@ -38,6 +38,7 @@ public:
     int  getActivityCount()   const { return static_cast<int>(activities.size()); }
     int  getCompletedCount()  const;
     int  getUncompletedCount()const;
+    double getTotalCost()     const;  // 當日總花費
 
     std::vector<Activity*> getCompleted()   const;  // 取得已完成清單
     std::vector<Activity*> getUncompleted() const;  // 取得未完成清單

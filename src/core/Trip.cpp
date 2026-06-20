@@ -10,8 +10,9 @@
 // ============================================================
 Trip::Trip(const std::string& tripName,
            const std::string& destination,
-           int totalDays)
-    : tripName(tripName), destination(destination), totalDays(totalDays)
+           int totalDays,
+           double budget)
+    : tripName(tripName), destination(destination), totalDays(totalDays), budget(budget)
 {}
 
 // ============================================================
@@ -112,6 +113,31 @@ std::map<std::string, int> Trip::getCompletionStatsByType() const {
 }
 
 // ============================================================
+//  v2.0 費用統計
+// ============================================================
+double Trip::getTotalCost() const {
+    double total = 0.0;
+    for (const Day& d : days) total += d.getTotalCost();
+    return total;
+}
+
+double Trip::getRemainingBudget() const {
+    return budget - getTotalCost();
+}
+
+std::map<std::string, double> Trip::getCostStatsByType() const {
+    std::map<std::string, double> stats;
+    for (const Day& day : days) {
+        for (const Activity* act : day.getActivities()) {
+            if (act->getCost() > 0.0) {
+                stats[act->getTypeLabel()] += act->getCost();
+            }
+        }
+    }
+    return stats;
+}
+
+// ============================================================
 //  顯示行程總覽
 // ============================================================
 void Trip::displaySummary() const {
@@ -141,6 +167,28 @@ void Trip::displaySummary() const {
             std::cout << Color::DIM << "     " << label << ": "
                       << Color::BRIGHT_GREEN << count << " 項"
                       << Color::RESET << "\n";
+        }
+    }
+
+    // 預算與花費顯示
+    if (budget > 0.0) {
+        std::cout << "\n";
+        UIHelper::printStat("總預算", "$" + std::to_string(static_cast<int>(budget)), Color::BRIGHT_MAGENTA);
+        UIHelper::printStat("已花費", "$" + std::to_string(static_cast<int>(getTotalCost())), Color::BRIGHT_YELLOW);
+        double remain = getRemainingBudget();
+        std::string remainColor = (remain >= 0) ? Color::BRIGHT_GREEN : Color::BRIGHT_RED;
+        UIHelper::printStat("剩餘預算", "$" + std::to_string(static_cast<int>(remain)), remainColor);
+        
+        // 各類別花費統計
+        auto costStats = getCostStatsByType();
+        if (!costStats.empty()) {
+            std::cout << "\n";
+            UIHelper::printStat("各類別花費", "");
+            for (const auto& [label, cost] : costStats) {
+                std::cout << Color::DIM << "     " << label << ": "
+                          << Color::BRIGHT_YELLOW << "$" << static_cast<int>(cost)
+                          << Color::RESET << "\n";
+            }
         }
     }
 

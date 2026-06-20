@@ -1,5 +1,6 @@
 #include "Day.h"
 #include <algorithm>
+#include <numeric>
 #include <iostream>
 
 // ============================================================
@@ -129,6 +130,16 @@ int Day::getCompletedCount() const {
 // ============================================================
 int Day::getUncompletedCount() const {
     return getActivityCount() - getCompletedCount();
+}
+
+// ============================================================
+//  當日總花費（使用 STL accumulate）
+// ============================================================
+double Day::getTotalCost() const {
+    return std::accumulate(activities.begin(), activities.end(), 0.0,
+                           [](double sum, const Activity* a) {
+                               return sum + a->getCost();
+                           });
 }
 
 // ============================================================

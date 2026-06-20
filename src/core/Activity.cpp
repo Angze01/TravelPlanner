@@ -1,13 +1,15 @@
 #include "Activity.h"
 #include <iomanip>
+#include <sstream>
 
 // ============================================================
 //  Activity 建構子
 // ============================================================
 Activity::Activity(const std::string& name,
                    const std::string& time,
-                   const std::string& note)
-    : name(name), time(time), note(note), isCompleted(false)
+                   const std::string& note,
+                   double cost)
+    : name(name), time(time), note(note), isCompleted(false), cost(cost)
 {}
 
 // ============================================================
@@ -39,12 +41,20 @@ void Activity::display(int index) const {
     if (!details.empty()) {
         std::cout << Color::MAGENTA << details << Color::RESET;
     }
+
+    // 費用顯示
+    if (cost > 0.0) {
+        std::ostringstream costOss;
+        costOss << std::fixed << std::setprecision(0) << cost;
+        std::cout << Color::BRIGHT_YELLOW << "  $" << costOss.str() << Color::RESET;
+    }
+
     std::cout << "\n";
 
     // 備注（若有）
     if (!note.empty()) {
         std::cout << Color::DIM
-                  << "        📝 " << note
+                  << "        Note: " << note
                   << Color::RESET << "\n";
     }
 }

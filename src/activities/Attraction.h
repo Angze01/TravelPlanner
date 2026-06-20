@@ -12,7 +12,8 @@ public:
     Attraction(const std::string& name,
                const std::string& time,
                const std::string& note        = "",
-               const std::string& ticketPrice = "");
+               const std::string& ticketPrice = "",
+               double             cost        = 0.0);
 
     // ── 純虛函式實作 ──────────────────────────────────────
     std::string getType()      const override { return "Attraction"; }

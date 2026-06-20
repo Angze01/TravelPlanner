@@ -12,7 +12,8 @@ public:
     Restaurant(const std::string& name,
                const std::string& time,
                const std::string& note    = "",
-               const std::string& cuisine = "");
+               const std::string& cuisine = "",
+               double             cost    = 0.0);
 
     // ── 純虛函式實作 ──────────────────────────────────────
     std::string getType()      const override { return "Restaurant"; }

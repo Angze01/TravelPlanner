@@ -4,8 +4,9 @@
 Attraction::Attraction(const std::string& name,
                        const std::string& time,
                        const std::string& note,
-                       const std::string& ticketPrice)
-    : Activity(name, time, note), ticketPrice(ticketPrice)
+                       const std::string& ticketPrice,
+                       double cost)
+    : Activity(name, time, note, cost), ticketPrice(ticketPrice)
 {}
 
 std::string Attraction::getDetails() const {
@@ -13,11 +14,11 @@ std::string Attraction::getDetails() const {
     return "🎫 " + ticketPrice;
 }
 
-// 序列化格式：ACT|Attraction|name|time|note|completed|ticketPrice
+// 序列化格式：ACT|Attraction|name|time|note|completed|ticketPrice|cost
 std::string Attraction::serialize() const {
     std::ostringstream oss;
     oss << "ACT|Attraction|" << name << "|" << time << "|"
         << note << "|" << (isCompleted ? "1" : "0") << "|"
-        << ticketPrice;
+        << ticketPrice << "|" << cost;
     return oss.str();
 }

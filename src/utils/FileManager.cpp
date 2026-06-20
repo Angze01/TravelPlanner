@@ -47,7 +47,8 @@ bool FileManager::save(const Trip& trip, const std::string& filename) {
     file << "TRIP|" << trip.getTripName()    << "|"
                     << trip.getDestination() << "|"
                     << trip.getTotalDays()   << "|"
-                    << startDate             << "\n";
+                    << startDate             << "|"
+                    << trip.getBudget()      << "\n";
 
     // 寫入每天資料
     for (const Day& day : trip.getDays()) {
@@ -80,22 +81,26 @@ Activity* FileManager::deserializeActivity(const std::string& line) {
 
     if (type == "Attraction") {
         std::string ticketPrice = (fields.size() > 6) ? fields[6] : "";
-        act = new Attraction(name, time, note, ticketPrice);
+        double cost = (fields.size() > 7 && !fields[7].empty()) ? std::stod(fields[7]) : 0.0;
+        act = new Attraction(name, time, note, ticketPrice, cost);
 
     } else if (type == "Restaurant") {
         std::string cuisine = (fields.size() > 6) ? fields[6] : "";
-        act = new Restaurant(name, time, note, cuisine);
+        double cost = (fields.size() > 7 && !fields[7].empty()) ? std::stod(fields[7]) : 0.0;
+        act = new Restaurant(name, time, note, cuisine, cost);
 
     } else if (type == "Hotel") {
         std::string checkIn  = (fields.size() > 6) ? fields[6] : "";
         std::string checkOut = (fields.size() > 7) ? fields[7] : "";
-        act = new Hotel(name, time, note, checkIn, checkOut);
+        double cost = (fields.size() > 8 && !fields[8].empty()) ? std::stod(fields[8]) : 0.0;
+        act = new Hotel(name, time, note, checkIn, checkOut, cost);
 
     } else if (type == "Transport") {
         std::string from          = (fields.size() > 6) ? fields[6] : "";
         std::string to            = (fields.size() > 7) ? fields[7] : "";
         std::string transportType = (fields.size() > 8) ? fields[8] : "";
-        act = new Transport(name, time, note, from, to, transportType);
+        double cost = (fields.size() > 9 && !fields[9].empty()) ? std::stod(fields[9]) : 0.0;
+        act = new Transport(name, time, note, from, to, transportType, cost);
     }
 
     if (act) act->setCompleted(completed);
@@ -124,7 +129,8 @@ Trip* FileManager::load(const std::string& filename) {
             std::string dest      = fields[2];
             int         totalDays = std::stoi(fields[3]);
             std::string startDate = fields[4];
-            trip = new Trip(name, dest, totalDays);
+            double      budget    = (fields.size() > 5 && !fields[5].empty()) ? std::stod(fields[5]) : 0.0;
+            trip = new Trip(name, dest, totalDays, budget);
             trip->initDays(startDate);  // 使用 DateUtils 計算每天日期
 
         } else if (fields[0] == "DAY" && fields.size() >= 3 && trip) {

@@ -16,7 +16,8 @@ public:
               const std::string& note          = "",
               const std::string& from          = "",
               const std::string& to            = "",
-              const std::string& transportType = "");
+              const std::string& transportType = "",
+              double             cost          = 0.0);
 
     // ── 純虛函式實作 ──────────────────────────────────────
     std::string getType()      const override { return "Transport"; }

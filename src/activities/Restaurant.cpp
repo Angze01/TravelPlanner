@@ -4,8 +4,9 @@
 Restaurant::Restaurant(const std::string& name,
                        const std::string& time,
                        const std::string& note,
-                       const std::string& cuisine)
-    : Activity(name, time, note), cuisine(cuisine)
+                       const std::string& cuisine,
+                       double cost)
+    : Activity(name, time, note, cost), cuisine(cuisine)
 {}
 
 std::string Restaurant::getDetails() const {
@@ -13,11 +14,11 @@ std::string Restaurant::getDetails() const {
     return "🍜 " + cuisine;
 }
 
-// 序列化格式：ACT|Restaurant|name|time|note|completed|cuisine
+// 序列化格式：ACT|Restaurant|name|time|note|completed|cuisine|cost
 std::string Restaurant::serialize() const {
     std::ostringstream oss;
     oss << "ACT|Restaurant|" << name << "|" << time << "|"
         << note << "|" << (isCompleted ? "1" : "0") << "|"
-        << cuisine;
+        << cuisine << "|" << cost;
     return oss.str();
 }

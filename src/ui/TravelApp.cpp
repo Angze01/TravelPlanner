@@ -96,6 +96,12 @@ void TravelApp::menuCreateTrip() {
     int days = UIHelper::getIntInput("幾天（例：7）", 1, 365);
     if (days < 1) { UIHelper::printError("天數無效"); UIHelper::pressEnterToContinue(); return; }
 
+    double budget = 0.0;
+    std::string budgetStr = UIHelper::getInput("整趟旅程總預算（留空或輸入 0 則不設定）");
+    if (!budgetStr.empty()) {
+        try { budget = std::stod(budgetStr); } catch(...) { budget = 0.0; }
+    }
+
     // 詢問出發日期
     std::string startDate = "";
     while (true) {
@@ -105,7 +111,7 @@ void TravelApp::menuCreateTrip() {
     }
 
     clearTrip();
-    currentTrip = new Trip(name, dest, days);
+    currentTrip = new Trip(name, dest, days, budget);
     currentTrip->initDays(startDate);
 
     UIHelper::printSuccess("旅程「" + name + "」已建立！共 " + std::to_string(days) + " 天");
@@ -332,9 +338,14 @@ Activity* TravelApp::createAttraction() {
     std::string name = UIHelper::getInput("景點名稱");
     if (name.empty()) return nullptr;
     std::string time = UIHelper::getInput("時間 HH:MM");
-    std::string ticket = UIHelper::getInput("門票費用（留空略過）");
+    std::string ticket = UIHelper::getInput("門票費用（字串，留空略過）");
     std::string note = UIHelper::getInput("備注（留空略過）");
-    return new Attraction(name, time, note, ticket);
+    
+    double cost = 0.0;
+    std::string costStr = UIHelper::getInput("實際花費數字（例：1500，留空為 0）");
+    if (!costStr.empty()) { try { cost = std::stod(costStr); } catch(...) {} }
+    
+    return new Attraction(name, time, note, ticket, cost);
 }
 
 // ============================================================
@@ -347,7 +358,12 @@ Activity* TravelApp::createRestaurant() {
     std::string time = UIHelper::getInput("時間 HH:MM");
     std::string cuisine = UIHelper::getInput("料理類型（例：壽司、拉麵）");
     std::string note = UIHelper::getInput("備注（留空略過）");
-    return new Restaurant(name, time, note, cuisine);
+
+    double cost = 0.0;
+    std::string costStr = UIHelper::getInput("實際花費數字（例：3000，留空為 0）");
+    if (!costStr.empty()) { try { cost = std::stod(costStr); } catch(...) {} }
+
+    return new Restaurant(name, time, note, cuisine, cost);
 }
 
 // ============================================================
@@ -361,7 +377,12 @@ Activity* TravelApp::createHotel() {
     std::string checkIn  = UIHelper::getInput("入住時間（例：15:00）");
     std::string checkOut = UIHelper::getInput("退房時間（例：11:00）");
     std::string note = UIHelper::getInput("備注（留空略過）");
-    return new Hotel(name, time, note, checkIn, checkOut);
+
+    double cost = 0.0;
+    std::string costStr = UIHelper::getInput("實際花費數字（例：8000，留空為 0）");
+    if (!costStr.empty()) { try { cost = std::stod(costStr); } catch(...) {} }
+
+    return new Hotel(name, time, note, checkIn, checkOut, cost);
 }
 
 // ============================================================
@@ -376,7 +397,12 @@ Activity* TravelApp::createTransport() {
     std::string to   = UIHelper::getInput("目的地");
     std::string type = UIHelper::getInput("交通方式（飛機/新幹線/巴士/地鐵）");
     std::string note = UIHelper::getInput("備注（留空略過）");
-    return new Transport(name, time, note, from, to, type);
+
+    double cost = 0.0;
+    std::string costStr = UIHelper::getInput("實際花費數字（例：2500，留空為 0）");
+    if (!costStr.empty()) { try { cost = std::stod(costStr); } catch(...) {} }
+
+    return new Transport(name, time, note, from, to, type, cost);
 }
 
 // ============================================================

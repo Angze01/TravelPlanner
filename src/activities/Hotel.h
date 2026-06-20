@@ -14,7 +14,8 @@ public:
           const std::string& time,
           const std::string& note     = "",
           const std::string& checkIn  = "",
-          const std::string& checkOut = "");
+          const std::string& checkOut = "",
+          double             cost     = 0.0);
 
     // ── 純虛函式實作 ──────────────────────────────────────
     std::string getType()      const override { return "Hotel"; }

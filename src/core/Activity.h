@@ -13,12 +13,14 @@ protected:
     std::string time;         // 時間 HH:MM
     std::string note;         // 備注
     bool        isCompleted;  // 是否已完成
+    double      cost;         // 費用（0 = 未設定）
 
 public:
     // 建構子
     Activity(const std::string& name,
              const std::string& time,
-             const std::string& note = "");
+             const std::string& note = "",
+             double cost = 0.0);
 
     // 虛擬解構子（支援多型刪除）
     virtual ~Activity() = default;
@@ -40,6 +42,7 @@ public:
     std::string getTime()        const { return time; }
     std::string getNote()        const { return note; }
     bool        getIsCompleted() const { return isCompleted; }
+    double      getCost()        const { return cost; }
 
     // ── Setter ────────────────────────────────────────────
     void setName(const std::string& n)  { name = n; }
@@ -47,4 +50,5 @@ public:
     void setNote(const std::string& n)  { note = n; }
     void setCompleted(bool c)           { isCompleted = c; }
     void toggleCompleted()              { isCompleted = !isCompleted; }
+    void setCost(double c)              { cost = c; }
 };

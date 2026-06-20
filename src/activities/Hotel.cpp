@@ -5,8 +5,9 @@ Hotel::Hotel(const std::string& name,
              const std::string& time,
              const std::string& note,
              const std::string& checkIn,
-             const std::string& checkOut)
-    : Activity(name, time, note), checkIn(checkIn), checkOut(checkOut)
+             const std::string& checkOut,
+             double cost)
+    : Activity(name, time, note, cost), checkIn(checkIn), checkOut(checkOut)
 {}
 
 std::string Hotel::getDetails() const {
@@ -16,11 +17,11 @@ std::string Hotel::getDetails() const {
     return result;
 }
 
-// 序列化格式：ACT|Hotel|name|time|note|completed|checkIn|checkOut
+// 序列化格式：ACT|Hotel|name|time|note|completed|checkIn|checkOut|cost
 std::string Hotel::serialize() const {
     std::ostringstream oss;
     oss << "ACT|Hotel|" << name << "|" << time << "|"
         << note << "|" << (isCompleted ? "1" : "0") << "|"
-        << checkIn << "|" << checkOut;
+        << checkIn << "|" << checkOut << "|" << cost;
     return oss.str();
 }
