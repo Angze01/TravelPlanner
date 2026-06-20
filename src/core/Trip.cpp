@@ -152,12 +152,19 @@ std::vector<std::pair<int, Activity*>> Trip::searchActivities(const std::string&
         for (Activity* act : day.getActivities()) {
             std::string name = act->getName();
             std::string note = act->getNote();
+            std::string typeLabel = act->getTypeLabel();
+            std::string details = act->getDetails();
+
             // 轉為小寫比對
             std::transform(name.begin(), name.end(), name.begin(), ::tolower);
             std::transform(note.begin(), note.end(), note.begin(), ::tolower);
+            std::transform(typeLabel.begin(), typeLabel.end(), typeLabel.begin(), ::tolower);
+            std::transform(details.begin(), details.end(), details.begin(), ::tolower);
 
             if (name.find(lowerKeyword) != std::string::npos || 
-                note.find(lowerKeyword) != std::string::npos) {
+                note.find(lowerKeyword) != std::string::npos ||
+                typeLabel.find(lowerKeyword) != std::string::npos ||
+                details.find(lowerKeyword) != std::string::npos) {
                 results.push_back({day.getDayNumber(), act});
             }
         }
