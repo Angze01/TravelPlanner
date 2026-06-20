@@ -29,6 +29,7 @@ private:
 
     // ── 活動操作 ────────────────────────────────────────────
     void addActivityToDay(int dayNumber);
+    void editActivityInDay(int dayNumber); // 修改活動
     void removeActivityFromDay(int dayNumber);
     void toggleActivityInDay(int dayNumber);
     void filterActivitiesInDay(int dayNumber); // V4: 活動過濾器

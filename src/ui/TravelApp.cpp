@@ -289,6 +289,7 @@ void TravelApp::menuManageDay(int dayNumber) {
         // 操作選單
         std::vector<std::string> options = {
             "新增活動",
+            "修改活動",
             "刪除活動",
             "切換完成狀態",
             "分類過濾活動",
@@ -298,10 +299,11 @@ void TravelApp::menuManageDay(int dayNumber) {
         int choice = UIHelper::selectMenu(options, "請選擇操作");
 
         if      (choice == 0) addActivityToDay(dayNumber);
-        else if (choice == 1) removeActivityFromDay(dayNumber);
-        else if (choice == 2) toggleActivityInDay(dayNumber);
-        else if (choice == 3) filterActivitiesInDay(dayNumber);
-        else if (choice == 4 || choice == -1) return;
+        else if (choice == 1) editActivityInDay(dayNumber);
+        else if (choice == 2) removeActivityFromDay(dayNumber);
+        else if (choice == 3) toggleActivityInDay(dayNumber);
+        else if (choice == 4) filterActivitiesInDay(dayNumber);
+        else if (choice == 5 || choice == -1) return;
     }
 }
 
@@ -503,6 +505,81 @@ Activity* TravelApp::createTransport() {
     if (!costStr.empty()) { try { cost = std::stod(costStr); } catch(...) {} }
 
     return new Transport(name, time, note, from, to, type, cost);
+}
+
+// ============================================================
+//  修改活動
+// ============================================================
+void TravelApp::editActivityInDay(int dayNumber) {
+    Day* day = currentTrip->getDay(dayNumber);
+    if (!day || day->getActivityCount() == 0) {
+        UIHelper::printWarning("此天目前沒有活動可供修改！");
+        UIHelper::pressEnterToContinue();
+        return;
+    }
+
+    std::string input = UIHelper::getInput("請輸入要修改的活動編號 (1~" + std::to_string(day->getActivityCount()) + ")，直接 Enter 取消");
+    if (input.empty()) return;
+
+    try {
+        int index = std::stoi(input);
+        Activity* act = day->getActivity(index);
+        if (!act) {
+            UIHelper::printError("無效的活動編號！");
+        } else {
+            UIHelper::printSection("修改活動：" + act->getName());
+            std::cout << Color::DIM << "（若不想修改該項目，請直接按 Enter 跳過）\n" << Color::RESET;
+
+            std::string newName = UIHelper::getInput("名稱 [" + act->getName() + "]");
+            if (!newName.empty()) act->setName(newName);
+
+            std::string newTime = UIHelper::getInput("時間 [" + act->getTime() + "]");
+            if (!newTime.empty()) act->setTime(newTime);
+
+            std::string newNote = UIHelper::getInput("備註 [" + act->getNote() + "]");
+            if (!newNote.empty()) act->setNote(newNote);
+
+            std::string costStr = UIHelper::getInput("費用 [" + std::to_string(act->getCost()) + "]");
+            if (!costStr.empty()) {
+                try { act->setCost(std::stod(costStr)); } catch(...) {}
+            }
+
+            // 處理各類型專屬欄位
+            if (Attraction* att = dynamic_cast<Attraction*>(act)) {
+                std::string newTP = UIHelper::getInput("門票 [" + att->getTicketPrice() + "]");
+                if (!newTP.empty()) att->setTicketPrice(newTP);
+            } 
+            else if (Restaurant* res = dynamic_cast<Restaurant*>(act)) {
+                std::string newCuis = UIHelper::getInput("菜系 [" + res->getCuisine() + "]");
+                if (!newCuis.empty()) res->setCuisine(newCuis);
+            }
+            else if (Hotel* hot = dynamic_cast<Hotel*>(act)) {
+                std::string newIn = UIHelper::getInput("Check-in 時間 [" + hot->getCheckIn() + "]");
+                if (!newIn.empty()) hot->setCheckIn(newIn);
+                
+                std::string newOut = UIHelper::getInput("Check-out 時間 [" + hot->getCheckOut() + "]");
+                if (!newOut.empty()) hot->setCheckOut(newOut);
+            }
+            else if (Transport* tr = dynamic_cast<Transport*>(act)) {
+                std::string newFrom = UIHelper::getInput("出發地 [" + tr->getFrom() + "]");
+                if (!newFrom.empty()) tr->setFrom(newFrom);
+                
+                std::string newTo = UIHelper::getInput("目的地 [" + tr->getTo() + "]");
+                if (!newTo.empty()) tr->setTo(newTo);
+                
+                std::string newType = UIHelper::getInput("交通方式 [" + tr->getTransportType() + "]");
+                if (!newType.empty()) tr->setTransportType(newType);
+            }
+
+            // 修改完畢，自動重新排序
+            day->sortByTime();
+
+            UIHelper::printSuccess("活動修改完成並已重新排序！");
+        }
+    } catch (...) {
+        UIHelper::printError("輸入格式錯誤！");
+    }
+    UIHelper::pressEnterToContinue();
 }
 
 // ============================================================
