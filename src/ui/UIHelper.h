@@ -64,7 +64,7 @@ public:
         std::cout << "\n" << Color::BRIGHT_CYAN << Color::BOLD;
         std::cout << "  +=================================================+\n";
         std::cout << "  |                                                 |\n";
-        std::cout << "  |      [MAP]  Travel Planner  v1.0               |\n";
+        std::cout << "  |      [MAP]  Travel Planner  v2.0               |\n";
         std::cout << "  |          C++ Final Project                      |\n";
         std::cout << "  |                                                 |\n";
         std::cout << "  +=================================================+\n";
