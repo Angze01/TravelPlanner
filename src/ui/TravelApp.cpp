@@ -507,7 +507,17 @@ Activity* TravelApp::createTransport() {
     std::string time = UIHelper::getInput("時間 HH:MM");
     std::string from = UIHelper::getInput("出發地");
     std::string to   = UIHelper::getInput("目的地");
-    std::string type = UIHelper::getInput("交通方式（飛機/新幹線/巴士/地鐵）");
+    
+    std::vector<std::string> typeOptions = {
+        "✈ 飛機", "🚄 新幹線 / 高鐵", "🚆 捷運 / 火車", "🚌 巴士 / 公車", "🚕 計程車", "🚶 步行", "自行輸入"
+    };
+    int typeIdx = UIHelper::selectMenu(typeOptions, "請選擇交通方式");
+    std::string type = "";
+    if (typeIdx == 6) {
+        type = UIHelper::getInput("請輸入自訂交通方式");
+    } else if (typeIdx >= 0 && typeIdx < 6) {
+        type = typeOptions[typeIdx];
+    }
     std::string note = UIHelper::getInput("備注（留空略過）");
 
     double cost = 0.0;
@@ -577,8 +587,17 @@ void TravelApp::editActivityInDay(int dayNumber) {
                 std::string newTo = UIHelper::getInput("目的地 [" + tr->getTo() + "]");
                 if (!newTo.empty()) tr->setTo(newTo);
                 
-                std::string newType = UIHelper::getInput("交通方式 [" + tr->getTransportType() + "]");
-                if (!newType.empty()) tr->setTransportType(newType);
+                std::vector<std::string> typeOptions = {
+                    "保持原樣 [" + tr->getTransportType() + "]",
+                    "✈ 飛機", "🚄 新幹線 / 高鐵", "🚆 捷運 / 火車", "🚌 巴士 / 公車", "🚕 計程車", "🚶 步行", "自行輸入"
+                };
+                int typeIdx = UIHelper::selectMenu(typeOptions, "請選擇新的交通方式");
+                if (typeIdx == 7) {
+                    std::string newType = UIHelper::getInput("請輸入自訂交通方式");
+                    if (!newType.empty()) tr->setTransportType(newType);
+                } else if (typeIdx > 0 && typeIdx < 7) {
+                    tr->setTransportType(typeOptions[typeIdx]);
+                }
             }
 
             // 修改完畢，自動重新排序
