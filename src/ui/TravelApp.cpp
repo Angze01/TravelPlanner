@@ -28,11 +28,19 @@ void TravelApp::clearTrip() {
 // ============================================================
 //  啟動主迴圈
 // ============================================================
+// 用於快速跳回主選單的例外結構
+struct ReturnToMainMenu {};
+
 void TravelApp::run() {
     UIHelper::setupConsole();
     running = true;
     while (running) {
-        menuMain();
+        try {
+            menuMain();
+        } catch (const ReturnToMainMenu&) {
+            // 捕捉到跳回主選單的請求，重新執行 menuMain
+            continue;
+        }
     }
     std::cout << Color::BRIGHT_CYAN << "\n  掰掰！旅途愉快 ✈\n\n" << Color::RESET;
 }
@@ -293,7 +301,8 @@ void TravelApp::menuManageDay(int dayNumber) {
             "刪除活動",
             "切換完成狀態",
             "分類過濾活動",
-            "返回"
+            "返回上一頁",
+            "直接回主選單"
         };
 
         int choice = UIHelper::selectMenu(options, "請選擇操作");
@@ -304,6 +313,7 @@ void TravelApp::menuManageDay(int dayNumber) {
         else if (choice == 3) toggleActivityInDay(dayNumber);
         else if (choice == 4) filterActivitiesInDay(dayNumber);
         else if (choice == 5 || choice == -1) return;
+        else if (choice == 6) throw ReturnToMainMenu();
     }
 }
 
