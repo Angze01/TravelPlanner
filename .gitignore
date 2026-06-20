@@ -1,0 +1,30 @@
+# ============================================================
+# .gitignore — 旅遊手冊 Travel Planner
+# ============================================================
+
+# 編譯輸出
+*.exe
+*.o
+*.obj
+*.out
+
+# 存檔目錄（個人資料，不上傳）
+saves/
+
+# 開發工具暫存
+.vscode/
+.vs/
+*.user
+*.suo
+*.vcxproj.user
+*.sdf
+*.opensdf
+ipch/
+Debug/
+Release/
+x64/
+x86/
+
+# Windows 暫存
+Thumbs.db
+desktop.ini
