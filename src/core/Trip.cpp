@@ -138,6 +138,34 @@ std::map<std::string, double> Trip::getCostStatsByType() const {
 }
 
 // ============================================================
+//  V4: 搜尋行程活動
+// ============================================================
+std::vector<std::pair<int, Activity*>> Trip::searchActivities(const std::string& keyword) const {
+    std::vector<std::pair<int, Activity*>> results;
+    if (keyword.empty()) return results;
+
+    // 將關鍵字轉為小寫
+    std::string lowerKeyword = keyword;
+    std::transform(lowerKeyword.begin(), lowerKeyword.end(), lowerKeyword.begin(), ::tolower);
+
+    for (const Day& day : days) {
+        for (Activity* act : day.getActivities()) {
+            std::string name = act->getName();
+            std::string note = act->getNote();
+            // 轉為小寫比對
+            std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+            std::transform(note.begin(), note.end(), note.begin(), ::tolower);
+
+            if (name.find(lowerKeyword) != std::string::npos || 
+                note.find(lowerKeyword) != std::string::npos) {
+                results.push_back({day.getDayNumber(), act});
+            }
+        }
+    }
+    return results;
+}
+
+// ============================================================
 //  顯示行程總覽
 // ============================================================
 void Trip::displaySummary() const {

@@ -67,6 +67,7 @@ void TravelApp::menuMain() {
         "載入旅程",
         "查看行程總覽",
         "管理每日活動",
+        "搜尋行程活動",
         "儲存旅程",
         "離開"
     };
@@ -77,8 +78,9 @@ void TravelApp::menuMain() {
     else if (choice == 1) menuLoadTrip();
     else if (choice == 2) { if (ensureTripLoaded()) menuTripSummary(); }
     else if (choice == 3) { if (ensureTripLoaded()) menuManageDays(); }
-    else if (choice == 4) { if (ensureTripLoaded()) menuSaveTrip(); }
-    else if (choice == 5 || choice == -1) running = false;
+    else if (choice == 4) { if (ensureTripLoaded()) menuSearch(); }
+    else if (choice == 5) { if (ensureTripLoaded()) menuSaveTrip(); }
+    else if (choice == 6 || choice == -1) running = false;
 }
 
 // ============================================================
@@ -289,6 +291,7 @@ void TravelApp::menuManageDay(int dayNumber) {
             "新增活動",
             "刪除活動",
             "切換完成狀態",
+            "分類過濾活動",
             "返回"
         };
 
@@ -297,7 +300,8 @@ void TravelApp::menuManageDay(int dayNumber) {
         if      (choice == 0) addActivityToDay(dayNumber);
         else if (choice == 1) removeActivityFromDay(dayNumber);
         else if (choice == 2) toggleActivityInDay(dayNumber);
-        else if (choice == 3 || choice == -1) return;
+        else if (choice == 3) filterActivitiesInDay(dayNumber);
+        else if (choice == 4 || choice == -1) return;
     }
 }
 
@@ -327,10 +331,103 @@ void TravelApp::addActivityToDay(int dayNumber) {
     }
 
     if (act) {
+        // V4: 檢查時間衝突
+        std::string newTime = act->getTime();
+        if (!newTime.empty()) {
+            Day* d = currentTrip->getDay(dayNumber);
+            int conflictCount = 0;
+            for (Activity* existing : d->getActivities()) {
+                if (existing->getTime() == newTime) {
+                    conflictCount++;
+                }
+            }
+            if (conflictCount > 0) {
+                UIHelper::printWarning("注意：目前有 " + std::to_string(conflictCount) + " 個其他活動也是在 " + newTime + "！請確認時間是否衝突。");
+            }
+        }
+
         currentTrip->addActivityToDay(dayNumber, act);
         UIHelper::printSuccess("活動「" + act->getName() + "」已新增！");
         UIHelper::pressEnterToContinue();
     }
+}
+
+// ============================================================
+//  V4: 活動過濾器
+// ============================================================
+void TravelApp::filterActivitiesInDay(int dayNumber) {
+    Day* day = currentTrip->getDay(dayNumber);
+    if (!day || day->getActivityCount() == 0) {
+        UIHelper::printWarning("此天沒有活動可過濾");
+        UIHelper::pressEnterToContinue();
+        return;
+    }
+
+    std::vector<std::string> options = {
+        "🏛  景點 (Attraction)",
+        "🍽  餐廳 (Restaurant)",
+        "🏨  住宿 (Hotel)",
+        "🚌  交通 (Transport)",
+        "返回"
+    };
+
+    int type = UIHelper::selectMenu(options, "選擇要檢視的活動類型");
+    if (type == 4 || type == -1) return;
+
+    std::vector<Activity*> filtered;
+    const auto& acts = day->getActivities();
+    
+    // 使用 std::copy_if 和 dynamic_cast 進行過濾
+    std::copy_if(acts.begin(), acts.end(), std::back_inserter(filtered),
+                 [type](const Activity* a) {
+                     if (type == 0) return dynamic_cast<const Attraction*>(a) != nullptr;
+                     if (type == 1) return dynamic_cast<const Restaurant*>(a) != nullptr;
+                     if (type == 2) return dynamic_cast<const Hotel*>(a) != nullptr;
+                     if (type == 3) return dynamic_cast<const Transport*>(a) != nullptr;
+                     return false;
+                 });
+
+    UIHelper::clearScreen();
+    std::cout << "\n  " << Color::BRIGHT_CYAN << "🔍 過濾結果：" << options[type] << Color::RESET << "\n";
+    UIHelper::printSeparator();
+
+    if (filtered.empty()) {
+        std::cout << Color::DIM << "  （找不到符合條件的活動）\n" << Color::RESET;
+    } else {
+        for (int i = 0; i < static_cast<int>(filtered.size()); i++) {
+            filtered[i]->display(i + 1);
+        }
+    }
+
+    UIHelper::pressEnterToContinue();
+}
+
+// ============================================================
+//  V4: 全域搜尋行程
+// ============================================================
+void TravelApp::menuSearch() {
+    displayHeader();
+    UIHelper::printSection("搜尋行程活動");
+
+    std::string keyword = UIHelper::getInput("請輸入要搜尋的關鍵字（名稱或備註）");
+    if (keyword.empty()) return;
+
+    auto results = currentTrip->searchActivities(keyword);
+
+    if (results.empty()) {
+        UIHelper::printWarning("找不到任何包含「" + keyword + "」的活動");
+    } else {
+        std::cout << "\n  🔍 搜尋結果（共 " << results.size() << " 筆）：\n";
+        UIHelper::printSeparator();
+        for (const auto& pair : results) {
+            int dayNum = pair.first;
+            Activity* act = pair.second;
+            std::cout << "  [" << Color::BRIGHT_YELLOW << "Day " << dayNum << Color::RESET << "] "
+                      << act->getTime() << " " << act->getName() 
+                      << " (" << act->getTypeLabel() << ")\n";
+        }
+    }
+    UIHelper::pressEnterToContinue();
 }
 
 // ============================================================

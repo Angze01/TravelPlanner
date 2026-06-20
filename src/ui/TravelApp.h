@@ -22,6 +22,7 @@ private:
     void menuManageDays();
     void menuSaveTrip();
     void menuSaveTripAs();
+    void menuSearch(); // V4: 搜尋功能
 
     // ── 單日管理 ────────────────────────────────────────────
     void menuManageDay(int dayNumber);
@@ -30,6 +31,7 @@ private:
     void addActivityToDay(int dayNumber);
     void removeActivityFromDay(int dayNumber);
     void toggleActivityInDay(int dayNumber);
+    void filterActivitiesInDay(int dayNumber); // V4: 活動過濾器
 
     // ── 活動建立輔助 ────────────────────────────────────────
     Activity* createAttraction();

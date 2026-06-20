@@ -18,6 +18,11 @@ private:
     std::vector<Day>  days;       // 每天的行程
 
 public:
+    // ── V4 進階功能 ───────────────────────────────────────
+    // 搜尋行程（回傳：<天數, Activity指標> 的清單）
+    std::vector<std::pair<int, Activity*>> searchActivities(const std::string& keyword) const;
+
+    // ── 儲存 / 載入 ──────────────────────────────────────────────
     // ── 建構子 ──────────────────────────────────────────────
     Trip(const std::string& tripName,
          const std::string& destination,
