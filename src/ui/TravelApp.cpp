@@ -61,23 +61,24 @@ void TravelApp::displayHeader() {
 // ============================================================
 void TravelApp::menuMain() {
     displayHeader();
-    std::cout << "\n";
-    UIHelper::printMenuItem("1", "建立新旅程");
-    UIHelper::printMenuItem("2", "載入旅程");
-    UIHelper::printMenuItem("3", "查看行程總覽");
-    UIHelper::printMenuItem("4", "管理每日活動");
-    UIHelper::printMenuItem("5", "儲存旅程");
-    UIHelper::printMenuItem("0", "離開", Color::BRIGHT_RED);
-    std::cout << "\n";
 
-    std::string choice = UIHelper::getInput("請選擇功能");
-    if      (choice == "1") menuCreateTrip();
-    else if (choice == "2") menuLoadTrip();
-    else if (choice == "3") { if (ensureTripLoaded()) menuTripSummary(); }
-    else if (choice == "4") { if (ensureTripLoaded()) menuManageDays(); }
-    else if (choice == "5") { if (ensureTripLoaded()) menuSaveTrip(); }
-    else if (choice == "0") running = false;
-    else UIHelper::printWarning("無效的選項，請重試");
+    std::vector<std::string> options = {
+        "建立新旅程",
+        "載入旅程",
+        "查看行程總覽",
+        "管理每日活動",
+        "儲存旅程",
+        "離開"
+    };
+
+    int choice = UIHelper::selectMenu(options, "主選單");
+
+    if      (choice == 0) menuCreateTrip();
+    else if (choice == 1) menuLoadTrip();
+    else if (choice == 2) { if (ensureTripLoaded()) menuTripSummary(); }
+    else if (choice == 3) { if (ensureTripLoaded()) menuManageDays(); }
+    else if (choice == 4) { if (ensureTripLoaded()) menuSaveTrip(); }
+    else if (choice == 5 || choice == -1) running = false;
 }
 
 // ============================================================
@@ -139,25 +140,28 @@ void TravelApp::menuLoadTrip() {
         return;
     }
 
-    std::cout << "\n  找到以下存檔：\n";
+    std::vector<std::string> options;
     for (int i = 0; i < static_cast<int>(files.size()); i++) {
         // 從路徑取出檔名
         std::string fname = files[i];
         auto pos = fname.find_last_of("\\/");
         if (pos != std::string::npos) fname = fname.substr(pos + 1);
-        UIHelper::printMenuItem(std::to_string(i + 1), fname);
+        options.push_back(fname);
     }
-    UIHelper::printMenuItem("0", "手動輸入路徑");
-    std::cout << "\n";
+    options.push_back("手動輸入路徑");
+    options.push_back("取消");
 
-    int choice = UIHelper::getIntInput("請選擇", 0, static_cast<int>(files.size()));
+    int choice = UIHelper::selectMenu(options, "選擇存檔");
+    
     std::string filename = "";
-    if (choice == 0) {
+    if (choice == static_cast<int>(files.size())) { // 手動輸入路徑
         filename = UIHelper::getInput("輸入檔案路徑");
-    } else if (choice >= 1 && choice <= static_cast<int>(files.size())) {
-        filename = files[choice - 1];
+    } else if (choice == static_cast<int>(files.size()) + 1 || choice == -1) { // 取消
+        return;
+    } else if (choice >= 0 && choice < static_cast<int>(files.size())) {
+        filename = files[choice];
     } else {
-        UIHelper::printError("無效選項"); UIHelper::pressEnterToContinue(); return;
+        return;
     }
 
     Trip* loaded = FileManager::load(filename);
@@ -244,15 +248,17 @@ void TravelApp::menuManageDays() {
         displayHeader();
         UIHelper::printSection("管理每日活動");
         displayDayList();
-        UIHelper::printMenuItem("0", "返回主選單", Color::BRIGHT_RED);
 
-        int choice = UIHelper::getIntInput("選擇要管理的天數", 0, currentTrip->getTotalDays());
-        if (choice == 0) return;
-        if (choice < 1 || choice > currentTrip->getTotalDays()) {
-            UIHelper::printError("無效天數");
-            continue;
+        std::vector<std::string> options;
+        for (int i = 1; i <= currentTrip->getTotalDays(); i++) {
+            options.push_back("Day " + std::to_string(i));
         }
-        menuManageDay(choice);
+        options.push_back("返回主選單");
+
+        int choice = UIHelper::selectMenu(options, "選擇要管理的天數");
+        if (choice == currentTrip->getTotalDays() || choice == -1) return;
+
+        menuManageDay(choice + 1);
     }
 }
 
@@ -279,22 +285,19 @@ void TravelApp::menuManageDay(int dayNumber) {
         day->display();
 
         // 操作選單
-        std::cout << "\n";
-        UIHelper::printMenuItem("A", "新增活動",       Color::BRIGHT_GREEN);
-        UIHelper::printMenuItem("D", "刪除活動",       Color::BRIGHT_RED);
-        UIHelper::printMenuItem("T", "切換完成狀態",   Color::BRIGHT_YELLOW);
-        UIHelper::printMenuItem("B", "返回",            Color::BRIGHT_RED);
-        std::cout << "\n";
+        std::vector<std::string> options = {
+            "新增活動",
+            "刪除活動",
+            "切換完成狀態",
+            "返回"
+        };
 
-        std::string choice = UIHelper::getInput("請選擇操作");
-        // 轉小寫
-        std::transform(choice.begin(), choice.end(), choice.begin(), ::tolower);
+        int choice = UIHelper::selectMenu(options, "請選擇操作");
 
-        if      (choice == "a") addActivityToDay(dayNumber);
-        else if (choice == "d") removeActivityFromDay(dayNumber);
-        else if (choice == "t") toggleActivityInDay(dayNumber);
-        else if (choice == "b") return;
-        else UIHelper::printWarning("無效操作");
+        if      (choice == 0) addActivityToDay(dayNumber);
+        else if (choice == 1) removeActivityFromDay(dayNumber);
+        else if (choice == 2) toggleActivityInDay(dayNumber);
+        else if (choice == 3 || choice == -1) return;
     }
 }
 
@@ -303,23 +306,23 @@ void TravelApp::menuManageDay(int dayNumber) {
 // ============================================================
 void TravelApp::addActivityToDay(int dayNumber) {
     UIHelper::printSection("新增活動");
-    std::cout << "\n";
-    UIHelper::printMenuItem("1", "🏛  景點 (Attraction)");
-    UIHelper::printMenuItem("2", "🍽  餐廳 (Restaurant)");
-    UIHelper::printMenuItem("3", "🏨  住宿 (Hotel)");
-    UIHelper::printMenuItem("4", "🚌  交通 (Transport)");
-    UIHelper::printMenuItem("0", "取消");
-    std::cout << "\n";
+    std::vector<std::string> options = {
+        "🏛  景點 (Attraction)",
+        "🍽  餐廳 (Restaurant)",
+        "🏨  住宿 (Hotel)",
+        "🚌  交通 (Transport)",
+        "取消"
+    };
 
-    int type = UIHelper::getIntInput("選擇活動類型", 0, 4);
-    if (type == 0) return;
+    int type = UIHelper::selectMenu(options, "選擇活動類型");
+    if (type == 4 || type == -1) return;
 
     Activity* act = nullptr;
     switch (type) {
-        case 1: act = createAttraction(); break;
-        case 2: act = createRestaurant(); break;
-        case 3: act = createHotel();      break;
-        case 4: act = createTransport();  break;
+        case 0: act = createAttraction(); break;
+        case 1: act = createRestaurant(); break;
+        case 2: act = createHotel();      break;
+        case 3: act = createTransport();  break;
         default: return;
     }
 
@@ -415,14 +418,21 @@ void TravelApp::removeActivityFromDay(int dayNumber) {
         UIHelper::pressEnterToContinue();
         return;
     }
-    int idx = UIHelper::getIntInput("輸入要刪除的活動編號", 1, day->getActivityCount());
-    if (idx < 1) return;
+    std::vector<std::string> options;
+    for (int i = 1; i <= day->getActivityCount(); i++) {
+        Activity* act = day->getActivity(i);
+        options.push_back(act->getName());
+    }
+    options.push_back("取消");
 
-    Activity* act = day->getActivity(idx);
-    if (!act) { UIHelper::printError("無效編號"); UIHelper::pressEnterToContinue(); return; }
+    int idx = UIHelper::selectMenu(options, "選擇要刪除的活動");
+    if (idx == day->getActivityCount() || idx == -1) return;
+
+    Activity* act = day->getActivity(idx + 1);
+    if (!act) return;
 
     std::string actName = act->getName();
-    if (currentTrip->removeActivityFromDay(dayNumber, idx)) {
+    if (currentTrip->removeActivityFromDay(dayNumber, idx + 1)) {
         UIHelper::printSuccess("已刪除活動：" + actName);
     } else {
         UIHelper::printError("刪除失敗");
@@ -440,11 +450,19 @@ void TravelApp::toggleActivityInDay(int dayNumber) {
         UIHelper::pressEnterToContinue();
         return;
     }
-    int idx = UIHelper::getIntInput("輸入要切換的活動編號", 1, day->getActivityCount());
-    if (idx < 1) return;
+    std::vector<std::string> options;
+    for (int i = 1; i <= day->getActivityCount(); i++) {
+        Activity* act = day->getActivity(i);
+        std::string status = act->getIsCompleted() ? "✅ " : "⬜ ";
+        options.push_back(status + act->getName());
+    }
+    options.push_back("取消");
 
-    if (currentTrip->toggleActivityInDay(dayNumber, idx)) {
-        Activity* act = day->getActivity(idx);
+    int idx = UIHelper::selectMenu(options, "選擇要切換狀態的活動");
+    if (idx == day->getActivityCount() || idx == -1) return;
+
+    if (currentTrip->toggleActivityInDay(dayNumber, idx + 1)) {
+        Activity* act = day->getActivity(idx + 1);
         if (act) {
             std::string status = act->getIsCompleted() ? "✅ 已完成" : "⬜ 待辦中";
             UIHelper::printSuccess("「" + act->getName() + "」→ " + status);

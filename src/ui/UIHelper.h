@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <iostream>
+#include <vector>
+#include <conio.h>
 
 // 手動定義 ENABLE_VIRTUAL_TERMINAL_PROCESSING（MinGW 8.x 可能未定義）
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
@@ -64,7 +66,7 @@ public:
         std::cout << "\n" << Color::BRIGHT_CYAN << Color::BOLD;
         std::cout << "  +=================================================+\n";
         std::cout << "  |                                                 |\n";
-        std::cout << "  |      [MAP]  Travel Planner  v1.0               |\n";
+        std::cout << "  |      [MAP]  Travel Planner  v3.0               |\n";
         std::cout << "  |          C++ Final Project                      |\n";
         std::cout << "  |                                                 |\n";
         std::cout << "  +=================================================+\n";
@@ -135,12 +137,63 @@ public:
         }
     }
 
-    // 印出選單項目
+    // 印出選單項目（保留供舊版或純顯示使用）
     static void printMenuItem(const std::string& key,
                               const std::string& label,
                               const std::string& keyColor = Color::BRIGHT_CYAN) {
         std::cout << "  " << keyColor << Color::BOLD << "[" << key << "]"
                   << Color::RESET << "  " << label << "\n";
+    }
+
+    // 方向鍵互動選單
+    static int selectMenu(const std::vector<std::string>& options, const std::string& title = "") {
+        int selected = 0;
+        int numOptions = static_cast<int>(options.size());
+        if (numOptions == 0) return -1;
+        
+        bool firstDraw = true;
+
+        // 確保游標隱藏，避免閃爍
+        std::cout << "\033[?25l";
+
+        while (true) {
+            if (!firstDraw) {
+                // 移動游標上去覆寫（標題有 2 行的話要多退 2 行）
+                int linesUp = numOptions;
+                if (!title.empty()) linesUp += 2;
+                std::cout << "\033[" << linesUp << "A";
+            }
+            firstDraw = false;
+
+            if (!title.empty()) {
+                std::cout << "\033[2K" << "  " << Color::BRIGHT_YELLOW << ">> " << title << "\n";
+                std::cout << "\033[2K" << "\n";
+            }
+
+            for (int i = 0; i < numOptions; i++) {
+                std::cout << "\033[2K"; // 清除該行
+                if (i == selected) {
+                    std::cout << "  " << Color::BRIGHT_GREEN << "▶ " 
+                              << Color::BRIGHT_WHITE << options[i] << Color::RESET << "\n";
+                } else {
+                    std::cout << "    " << Color::DIM << options[i] << Color::RESET << "\n";
+                }
+            }
+
+            int key = _getch();
+            if (key == 224 || key == 0) { // Windows 方向鍵前綴
+                key = _getch();
+                if (key == 72) { // 上
+                    selected = (selected - 1 + numOptions) % numOptions;
+                } else if (key == 80) { // 下
+                    selected = (selected + 1) % numOptions;
+                }
+            } else if (key == 13) { // Enter
+                // 恢復游標顯示
+                std::cout << "\033[?25h";
+                return selected;
+            }
+        }
     }
 
     // 印出統計列
